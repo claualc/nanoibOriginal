@@ -1,0 +1,175 @@
+<html>
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <script>
+            //usuário da sessão
+            //todo controlar a sessão de verdade
+            var user = null;
+  
+            async function fetchHtmlAsText(url) {
+                return await (await fetch(url)).text();
+            }
+
+            async function loadContent(docUrl, functionDelayed) {
+                const contentDiv = document.getElementById("content");
+                contentDiv.innerHTML = await fetchHtmlAsText(docUrl);
+                if (functionDelayed != null) {
+                  functionDelayed();
+                }
+            }
+
+            function login() {
+                var params = new Map();
+                params["accBranchId"] = document.getElementById("accBidInput").value;
+                params["accId"] = document.getElementById("accIdInput").value;
+                params["usrPwd"] = document.getElementById("userPwdInput").value;
+                var req = new XMLHttpRequest();
+                req.onload = function() {
+                  if (req.status == 200) {
+                    user = JSON.parse(req.responseText);
+                    loadContent('main.html', setUpMainPage);
+                  } else if (req.status == 401) {
+                    alert('Wrong pwd or usr not found!');
+                  } else {
+                    alert('An error occurred: ' + req.status);
+                  }
+                };
+                req.onerror = function() {
+                  alert('An error occurred: unknown');
+                };
+                req.open('POST', '/nanoib/svcs/login');
+                req.send(JSON.stringify(params));
+            }
+
+            function logoff() {
+                user = null;
+                loadContent('login.html', setUpMainPage);
+            }
+
+            function transfer() {
+                var params = new Map();
+                params["destAccBranchId"] = document.getElementById("ctptAccBidInput").value;
+                params["destAccId"] = document.getElementById("ctptAccIdInput").value;
+                params["value"] = document.getElementById("amountInput").value;
+                params["comment"] = document.getElementById("commentInput").value;
+                var req = new XMLHttpRequest();
+                req.onload = function() {
+                  loadContent('main.html', setUpMainPage);
+                };
+                req.onerror = function() {
+                  alert(`An error occurred`);
+                };
+                req.open('POST', '/nanoib/svcs/transfer');
+                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.send(JSON.stringify(params));
+            }
+ 
+            function setUpMainPage() {
+                var greetDiv = document.getElementById("greet");
+                var greet = document.createTextNode("Olá, " + user["accHolder"] + "!");
+                var h4 = document.createElement("h4");
+                h4.appendChild(greet);
+                greetDiv.appendChild(h4);
+
+                loadBalance();
+                loadStatements();
+            }
+
+            function loadBalance() {
+                var req = new XMLHttpRequest();
+                req.onload = function() {
+                    var balanceDiv = document.getElementById("balance");
+                    var balance = document.createTextNode("Saldo: " + JSON.parse(req.responseText)["balance"]);
+                    var h3 = document.createElement("h3");
+                    h3.appendChild(balance);
+                    balanceDiv.appendChild(h3);
+                };
+                req.onerror = function() {
+                    alert(`An error occurred while retrieving your balance`);
+                };
+                req.open('GET', '/nanoib/svcs/balance');
+                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.send();
+            }
+
+            function loadStatements() {
+                var req = new XMLHttpRequest();
+                req.onload = function() {
+                    fillStatements(JSON.parse(req.responseText));
+                };
+                req.onerror = function() {
+                    alert(`An error occurred while retrieving your statement`);
+                };
+                req.open('GET', '/nanoib/svcs/statement');
+                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.send();
+            }
+
+            function fillStatements(statements) {
+                statements.forEach(element => {
+                    insertStmntRow(element['timestamp'], element['cptpAccBranchId'],  element['cptpAccId'], element['ctptName'], element['in_out'], element['value'], element['comment']);
+                });
+            }
+
+            function insertStmntRow(date, ctptAccBranchId, cptpAccId, ctptName, isIn, value, comment) {
+                var tableRef = document.getElementById('stmntstable').getElementsByTagName('tbody')[0];
+
+                var newRow3 = tableRef.insertRow();                
+                var newRow2 = tableRef.insertRow();
+                var newRow1 = tableRef.insertRow();
+
+                var newCell  = newRow3.insertCell(0);
+                newCell.classList.add("tg-1pky");
+                text  = document.createTextNode(date);
+                newCell.appendChild(text);
+
+                if (isIn == true) {
+                    newCell  = newRow3.insertCell(1);
+                    newCell.classList.add("tg-dvpl");
+                    span = document.createElement("span");
+                    span.style = "font-weight:bold;color:#009901";
+                    text  = document.createTextNode("+ " + value);
+                    span.appendChild(text);
+                    newCell.appendChild(span);
+
+                    newCell  = newRow2.insertCell(0);
+                    newCell.colSpan = 2;
+                    newCell.classList.add("tg-0pky");
+                    text  = document.createTextNode("Transferência de " + ctptName + " (Ag/Cta: " + ctptAccBranchId + "/" + cptpAccId + ")");
+                    newCell.appendChild(text);
+
+                } else {
+                    newCell  = newRow3.insertCell(1);
+                    newCell.classList.add("tg-dvpl");
+                    span = document.createElement("span");
+                    span.style = "font-weight:bold;color:#9A0000";
+                    text  = document.createTextNode("-" + value);
+                    span.appendChild(text);
+                    newCell.appendChild(span);
+
+                    newCell  = newRow2.insertCell(0);
+                    newCell.colSpan = 2;
+                    newCell.classList.add("tg-0pky");
+                    text  = document.createTextNode("Transferência para " + ctptName + " (Ag/Cta: " + ctptAccBranchId + "/" + cptpAccId + ")");
+                    newCell.appendChild(text);
+                }
+
+                newCell  = newRow1.insertCell(0);
+                newCell.colSpan = 2;
+                newCell.classList.add("tg-l6li");
+                var text  = document.createTextNode("\""+ comment + "\"");
+                newCell.appendChild(text);
+            }
+
+        </script>
+    </head>
+    <body onload="loadContent('login.html')">
+        <div>
+            <h1>nIB</h1>
+            <div id="content">
+            </div>
+        </div>
+    </body>
+</html>
+

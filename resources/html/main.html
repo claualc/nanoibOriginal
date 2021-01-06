@@ -1,0 +1,46 @@
+<html>
+    <head>
+        <style type="text/css">
+            .tg  {border:none;}
+            .tg td{font-family:Arial, sans-serif;font-size:14px;
+            overflow:hidden;padding:2px 5px;word-break:normal;}
+            .tg th{font-family:Arial, sans-serif;font-size:14px;
+            font-weight:normal;overflow:hidden;padding:2px 5px;word-break:normal;}
+            .tg .tg-l6li{font-size:10px;text-align:left;vertical-align:top}
+            .tg .tg-fymr{font-weight:bold;text-align:left;vertical-align:top}
+            .tg .tg-0pky{text-align:left;vertical-align:top}
+            .tg .tg-1pky{padding-top:15px;text-align:left;font-weight:bold;vertical-align:top}
+            .tg .tg-73oq{text-align:left;vertical-align:top}
+            .tg .tg-dvpl{padding-top:15px;text-align:right;vertical-align:top}
+        </style>
+    </head>
+    <body>
+        <table style="border: none; table-layout: fixed; width: 100%">
+            <colgroup>
+                <col style="width: 65%">
+                <col style="width: 35%">
+            </colgroup>
+            <tbody>
+                <tr>
+                    <th style="text-align:left;vertical-align:middle"><div id="greet"></div></th>
+                    <th style="text-align:right;vertical-align:middle"><a onclick="script:logoff()" href="#">Sair</a></th>
+                </tr>
+                <tr>
+                    <th style="text-align:left;vertical-align:middle"><div id="balance"></div></th>
+                    <th style="vertical-align:middle"><input style="margin:auto;display:block;" type="button" value="Transferir" onclick="script:loadContent('transfer.html', setUpMainPage)"/></th>
+                </tr>
+                <tr style="text-align:left;vertical-align:middle">
+                    <th colspan="2">Histórico de transferências</th>
+                </tr>
+            </tbody>
+        </table>
+        <table class="tg" style="undefined;table-layout: fixed; width: 100%" id="stmntstable">
+            <colgroup>
+                <col style="width: 65%">
+                <col style="width: 35%">
+            </colgroup>
+            <tbody>
+            </tbody>
+        </table>
+    </body>
+</html>
