@@ -34,11 +34,10 @@ O nanoIB foi desenvolvido em ambiente computacional formado pelos elementos segu
 
 ## Instalação e Execução
 
-Depois de clonar o repositório, deve-se executar o arquivo de criação da base de dados "dbcreation.sql", ao, por exemplo, executar os seguintes comandos:
+Depois de clonar o repositório, deve-se executar o arquivo de criação da base de dados "dbcreation.sql", ao, por exemplo, executar o seguinte comando (assuma-se que \<repo-parent-folder\> é o diretório-raiz do projeto no sistemas de arquivos):
 
 ```bash
-cd <repo-parent-folder>/nanoib/resources
-sudo mysql < dbcreation.sql
+sudo mysql < <repo-parent-folder>/nanoib/resourcesdbcreation.sql
 ```
 
 Em seguida, deve-se habilitar o modo reverse-proxy do Apache2:
@@ -76,8 +75,8 @@ sudo systemctl restart apache2
 Em seguida, deve-se copiar os arquivos HTML para o diretório "www" do Apache, e ajustar-se a permissão de leitura dos mesmos:
 
 ```bash
+sudo mkdir /var/www/html/nanoib
 sudo cp * /var/www/html/nanoib
-sudo mkdir /var/www/html/
 cd /var/www/html/nanoib
 sudo chmod 644 *
 ```

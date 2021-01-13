@@ -5,7 +5,10 @@
         <script>
             //usuário da sessão
             //todo controlar a sessão de verdade
-            var user = null;
+            var accBranchId = null;
+            var accId = null;
+            var accHolderName = null;
+            var nIBSessionToken = null;
   
             async function fetchHtmlAsText(url) {
                 return await (await fetch(url)).text();
@@ -27,7 +30,13 @@
                 var req = new XMLHttpRequest();
                 req.onload = function() {
                   if (req.status == 200) {
-                    user = JSON.parse(req.responseText);
+                    var parsedResp = JSON.parse(req.responseText);
+                    
+                    accBranchId = parsedResp["accBranchId"];
+                    accId = parsedResp["accId"];
+                    accHolderName = parsedResp["accHolderName"];
+                    nIBSessionToken = parsedResp["sessToken"];
+                    
                     loadContent('main.html', setUpMainPage);
                   } else if (req.status == 401) {
                     alert('Wrong pwd or usr not found!');
@@ -43,7 +52,11 @@
             }
 
             function logoff() {
-                user = null;
+                accBranchId = null;
+                accId = null;
+                accHolderName = null;
+                nIBSessionToken = null;
+
                 loadContent('login.html', setUpMainPage);
             }
 
@@ -61,13 +74,13 @@
                   alert(`An error occurred`);
                 };
                 req.open('POST', '/nanoib/svcs/transfer');
-                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.setRequestHeader('NIB-Session', nIBSessionToken);
                 req.send(JSON.stringify(params));
             }
  
             function setUpMainPage() {
                 var greetDiv = document.getElementById("greet");
-                var greet = document.createTextNode("Olá, " + user["accHolder"] + "!");
+                var greet = document.createTextNode("Olá, " + accHolderName + "!");
                 var h4 = document.createElement("h4");
                 h4.appendChild(greet);
                 greetDiv.appendChild(h4);
@@ -89,7 +102,7 @@
                     alert(`An error occurred while retrieving your balance`);
                 };
                 req.open('GET', '/nanoib/svcs/balance');
-                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.setRequestHeader('NIB-Session', nIBSessionToken);
                 req.send();
             }
 
@@ -102,7 +115,7 @@
                     alert(`An error occurred while retrieving your statement`);
                 };
                 req.open('GET', '/nanoib/svcs/statement');
-                req.setRequestHeader('nib-ten', JSON.stringify(user));
+                req.setRequestHeader('NIB-Session', nIBSessionToken);
                 req.send();
             }
 

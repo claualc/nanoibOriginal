@@ -23,71 +23,71 @@ import br.usp.larc.nanoib.beans.StatementItemBean;
  * @author Oscar
  */
 public class StatementRequestHandler extends RequestHandler {
-	
-	//Handler's Endpoint
+    
+    //Handler's Endpoint
     //----------------------------------------------------------------------------------------------
-	public static Endpoint endpoint = new Endpoint("/statement", Method.GET, false);
-	
-	//----------------------------------------------------------------------------------------------
-	public StatementRequestHandler(DBConnInfo context) {
-		super(context);
-	}
+    public static Endpoint endpoint = new Endpoint("/statement", Method.GET, false);
+    
+    //----------------------------------------------------------------------------------------------
+    public StatementRequestHandler(DBConnInfo context) {
+        super(context);
+    }
 
-	//----------------------------------------------------------------------------------------------
-	@Override
-	public Endpoint getEndpoint() {
-		return StatementRequestHandler.endpoint;
-	}
+    //----------------------------------------------------------------------------------------------
+    @Override
+    public Endpoint getEndpoint() {
+        return StatementRequestHandler.endpoint;
+    }
 
-	//----------------------------------------------------------------------------------------------
-	@Override
-	public Response handle(
-			IHTTPSession input, Tenant tenant, Connection dBConn
-	) throws IOException {
-		Response response = null;
-		
-		try {
-			CallableStatement stmnt = dBConn.prepareCall("call get_statement_items(?,?,0,9999)");
+    //----------------------------------------------------------------------------------------------
+    @Override
+    public Response handle(
+            IHTTPSession input, RemoteTenant tenant, Connection dBConn
+    ) throws IOException {
+        Response response = null;
+        
+        try {
+            CallableStatement stmnt = dBConn.prepareCall("call get_statement_items(?,?,0,9999)");
 
-			stmnt.setLong(1, tenant.accBranchId);
-			stmnt.setLong(2, tenant.accId);
-			
-			if (stmnt.execute()) {
-				List<StatementItemBean> result = new ArrayList<StatementItemBean>();
-				
-				ResultSet rs = stmnt.getResultSet();
-				
-				while (rs.next())
-					result.add(
-							new StatementItemBean(
-									rs.getLong(1),
-									rs.getTimestamp(2).toString(),
-									rs.getBoolean(3),
-									rs.getBigDecimal(4),
-									rs.getString(5),
-									rs.getLong(6),
-									rs.getLong(7),
-									rs.getString(8)
-									)
-							);
-				
-				byte[] responseBytes = StatementItemBean.toJsonString(result).getBytes();
-				
-				response = new Response(
-						Status.OK,
-						"application/json",
-						new ByteArrayInputStream(responseBytes),
-						responseBytes.length
-				);
-			} else {
-				response = new Response(Status.INTERNAL_ERROR, null, null, 0);
-			}
-		} catch (SQLException e) {
-			e.printStackTrace();
-			response = new Response(Status.INTERNAL_ERROR, null, null, 0);
-		}
-		
-		return response;
-	}
+            stmnt.setLong(1, tenant.accBranchId);
+            stmnt.setLong(2, tenant.accId);
+            
+            if (stmnt.execute()) {
+                List<StatementItemBean> result = new ArrayList<StatementItemBean>();
+                
+                ResultSet rs = stmnt.getResultSet();
+                
+                while (rs.next())
+                    result.add(
+                            new StatementItemBean(
+                                    rs.getLong(1),
+                                    rs.getTimestamp(2).toString(),
+                                    rs.getBoolean(3),
+                                    rs.getBigDecimal(4),
+                                    rs.getString(5),
+                                    rs.getLong(6),
+                                    rs.getLong(7),
+                                    rs.getString(8)
+                                    )
+                            );
+                
+                byte[] responseBytes = StatementItemBean.toJsonString(result).getBytes();
+                
+                response = new Response(
+                        Status.OK,
+                        "application/json",
+                        new ByteArrayInputStream(responseBytes),
+                        responseBytes.length
+                );
+            } else {
+                response = new Response(Status.INTERNAL_ERROR, null, null, 0);
+            }
+        } catch (SQLException e) {
+            e.printStackTrace();
+            response = new Response(Status.INTERNAL_ERROR, null, null, 0);
+        }
+        
+        return response;
+    }
 
 }

@@ -10,11 +10,11 @@ import org.nanohttpd.util.ServerRunner;
  * @author Oscar
  */
 public class Main {
-	
-	public static void main(String[] args) {
-		ServerRunner.executeInstance(
-				new NanoIBHTTPD(8080, "localhost", 3306, "nanoib", "nanoibserver", "pwd")
-		);
-	}
-	
+    
+    public static void main(String[] args) {
+        ServerRunner.executeInstance(
+                new NanoIBHTTPD(8080, "localhost", 3306, "nanoib", "nanoibserver", "pwd")
+        );
+    }
+    
 }

@@ -13,7 +13,7 @@ create table if not exists accounts(
   id bigint not null default 0,
   holders_name varchar(40) not null,
   pwd binary(32) not null,
-  pwd_salt binary(4) not null,
+  pwd_salt binary(8) not null,
   primary key (branch_id, id)
 );
 
@@ -69,8 +69,8 @@ create or replace procedure create_account(
   in p_branch_id bigint,
   in p_id bigint,
   in p_holders_name varchar(40),
+  in p_pwd_salt binary(8),
   in p_pwd binary(32),
-  in p_pwd_salt binary(4),
   in p_initial_balance numeric(20,2)
 )
 begin
@@ -124,8 +124,8 @@ create or replace procedure get_user(
 begin
   select
     holders_name,
-    pwd,
-    pwd_salt  
+    pwd_salt,
+    pwd
   from
     accounts
   where
@@ -345,10 +345,10 @@ end;
 $$
 
 
-call create_account(0, 0, 'John Doe', '1234', 0x00000000, 50000.00);
-call create_account(0, 1, 'Richard Roe', '1234', 0x00000000, 50000.00);
-call create_account(0, 2, 'Janie Roe', '1234', 0x00000000, 50000.00);
-call create_account(0, 3, 'Baby Doe', '1234', 0x00000000, 50000.00);
+call create_account(0, 0, 'John Doe', 0xBE0FCCDBBCB4848D, 0xE6B7EF8854E8B01FCF7B7AFBEB9E03BAA9D09A88F23E218EDE91AC503BBD0211, 50000.00);
+call create_account(0, 1, 'Richard Roe', 0x02C2C080258298AB, 0x38A743D7B751EAA937290E88E458E53F73A08964A6B4081336E61AE685942F5D, 50000.00);
+call create_account(0, 2, 'Janie Roe', 0x29D0B1B53360CD9D, 0x323E6DF32E7BF5D491F8DC61E0853607AA0CC0255E683981DEC8726FD1E1A20A, 50000.00);
+call create_account(0, 3, 'Baby Doe', 0x1A89299556104D9C, 0x6D8C6208C0335406D787BFAE8F29562129140665E87A92258790C5A9AF129B8D, 50000.00);
 
 
 CREATE USER 'nanoibserver'@'localhost' IDENTIFIED BY 'pwd';
@@ -358,4 +358,3 @@ GRANT EXECUTE ON PROCEDURE nanoib.get_balance TO 'nanoibserver'@'localhost';
 GRANT EXECUTE ON PROCEDURE nanoib.transfer TO 'nanoibserver'@'localhost';
 GRANT EXECUTE ON PROCEDURE nanoib.count_statement_items TO 'nanoibserver'@'localhost';
 GRANT EXECUTE ON PROCEDURE nanoib.get_statement_items TO 'nanoibserver'@'localhost';
-

@@ -28,127 +28,108 @@ import br.usp.larc.nanoib.handlers.RequestHandler.Endpoint;
  * @author oscar
  */
 public class NanoIBHTTPD extends NanoHTTPD {
-	
-	//Class attributes
+    
+    //Class attributes
     //----------------------------------------------------------------------------------------------
-	public static class DBConnInfo {
-		public String host;
-		public int port;
-		public String name;
-		public String user;
-		public String pwd;
-		
-		public DBConnInfo(String host, int port, String name, String user, String pwd) {
-			this.host = host;
-			this.port = port;
-			this.name = name;
-			this.user = user;
-			this.pwd = pwd;
-		}
-	}
-	
-	//Object attributes
+    public static class DBConnInfo {
+        public String host;
+        public int port;
+        public String name;
+        public String user;
+        public String pwd;
+        
+        public DBConnInfo(String host, int port, String name, String user, String pwd) {
+            this.host = host;
+            this.port = port;
+            this.name = name;
+            this.user = user;
+            this.pwd = pwd;
+        }
+    }
+    
+    //Object attributes
     //----------------------------------------------------------------------------------------------
-	private DBConnInfo dBConnInfo;
-	
-	private Map<RequestHandler.Endpoint, RequestHandler> requestHandlers;
-	
-	//Constructors
-	//----------------------------------------------------------------------------------------------
-	public NanoIBHTTPD(
-			int port, String dBHost, int dBPort, String dBName, String dBUser, String dBPwd
-	) {
-		this(null, port, dBHost, dBPort, dBName, dBUser, dBPwd);
-	}
-	
-	public NanoIBHTTPD(
-			String hostName, int port,
-			String dBHost, int dBPort, String dBName, String dBUser, String dBPwd
-	) {
-		super(hostName, port);
-		
-		dBConnInfo = new DBConnInfo(dBHost, dBPort, dBName, dBUser, dBPwd);
-		
-		requestHandlers = new HashMap<RequestHandler.Endpoint, RequestHandler>();
-		
-		requestHandlers.put(
-				LoginRequestHandler.endpoint,
-				new LoginRequestHandler(dBConnInfo)
-		);
-		requestHandlers.put(
-				BalanceRequestHandler.endpoint,
-				new BalanceRequestHandler(dBConnInfo)
-		);
-		requestHandlers.put(
-				StatementRequestHandler.endpoint,
-				new StatementRequestHandler(dBConnInfo)
-		);
-		requestHandlers.put(
-				TransferRequestHandler.endpoint,
-				new TransferRequestHandler(dBConnInfo)
-		);
-		
-		addHTTPInterceptor(knownEndpointsInterceptor);
-		addHTTPInterceptor(basicAccessControlInterceptor);
-		
-		setHTTPHandler(requestDispatcher);
-	}
-	
-	//Interceptors
+    private DBConnInfo dBConnInfo;
+    
+    private Map<RequestHandler.Endpoint, RequestHandler> requestHandlers;
+    
+    //Constructors
     //----------------------------------------------------------------------------------------------
-	/**
-	 * Filtro de endpoints conhecidos
-	 */
-	private IHandler<IHTTPSession, Response> knownEndpointsInterceptor = 
-			new IHandler<IHTTPSession, Response>() {
-		@Override
-		public Response handle(IHTTPSession input) {
-			Response response = null;
-			
-			Endpoint key = new Endpoint(input.getUri(), input.getMethod());
-			if (!requestHandlers.containsKey(key))
-				response = new Response(Status.NOT_FOUND, null, null, 0);
-				
-			return response;
-		}
-	};
-	
-	/**
-	 * Filtro básico de controle de acesso TODO fazer verificações mais elaboradas 
-	 */
-	private IHandler<IHTTPSession, Response> basicAccessControlInterceptor = 
-			new IHandler<IHTTPSession, Response>() {
-		@Override
-		public Response handle(IHTTPSession input) {
-			Response response = null;
-			
-			Endpoint key = new Endpoint(input.getUri(), input.getMethod());
-			if (!requestHandlers.get(key).getEndpoint().isPublic())
-				if (!input.getHeaders().containsKey("nib-ten"))
-					response = new Response(Status.UNAUTHORIZED, null, null, 0);
-				
-			return response;
-		}
-	};
-
-	//Dispatcher
+    public NanoIBHTTPD(
+            int port, String dBHost, int dBPort, String dBName, String dBUser, String dBPwd
+    ) {
+        this(null, port, dBHost, dBPort, dBName, dBUser, dBPwd);
+    }
+    
+    public NanoIBHTTPD(
+            String hostName, int port,
+            String dBHost, int dBPort, String dBName, String dBUser, String dBPwd
+    ) {
+        super(hostName, port);
+        
+        dBConnInfo = new DBConnInfo(dBHost, dBPort, dBName, dBUser, dBPwd);
+        
+        requestHandlers = new HashMap<RequestHandler.Endpoint, RequestHandler>();
+        
+        requestHandlers.put(
+                LoginRequestHandler.endpoint,
+                new LoginRequestHandler(dBConnInfo)
+        );
+        requestHandlers.put(
+                BalanceRequestHandler.endpoint,
+                new BalanceRequestHandler(dBConnInfo)
+        );
+        requestHandlers.put(
+                StatementRequestHandler.endpoint,
+                new StatementRequestHandler(dBConnInfo)
+        );
+        requestHandlers.put(
+                TransferRequestHandler.endpoint,
+                new TransferRequestHandler(dBConnInfo)
+        );
+        
+        addHTTPInterceptor(knownEndpointsInterceptor);
+        
+        setHTTPHandler(requestDispatcher);
+    }
+    
+    //Interceptors
     //----------------------------------------------------------------------------------------------
-	/**
-	 * Redireciona o atendimento da requisição ao RequestHandler responsável pelo endpoint 
-	 */
-	private IHandler<IHTTPSession, Response> requestDispatcher = 
-			new IHandler<IHTTPSession, Response>() {
-		
-		@Override
-		public Response handle(IHTTPSession input) {
-			return requestHandlers.get(
-					new RequestHandler.Endpoint(
-							input.getUri(),
-							input.getMethod()
-					)
-			).handle(input);
-		}
-		
-	};
-	
+    /**
+     * Filtro de endpoints conhecidos
+     */
+    private IHandler<IHTTPSession, Response> knownEndpointsInterceptor = 
+            new IHandler<IHTTPSession, Response>() {
+        @Override
+        public Response handle(IHTTPSession input) {
+            Response response = null;
+            
+            Endpoint key = new Endpoint(input.getUri(), input.getMethod());
+            if (!requestHandlers.containsKey(key))
+                response = new Response(Status.NOT_FOUND, null, null, 0);
+                
+            return response;
+        }
+    };
+    
+    //Dispatcher
+    //----------------------------------------------------------------------------------------------
+    /**
+     * Redireciona o atendimento da requisição ao RequestHandler responsável pelo endpoint 
+     */
+    private IHandler<IHTTPSession, Response> requestDispatcher = 
+            new IHandler<IHTTPSession, Response>() {
+        
+        @Override
+        public Response handle(IHTTPSession input) {
+            return requestHandlers.get(
+                    new RequestHandler.Endpoint(
+                            input.getUri(),
+                            input.getMethod()
+                    )
+            ).handle(input);
+        }
+        
+    };
+    
 }
